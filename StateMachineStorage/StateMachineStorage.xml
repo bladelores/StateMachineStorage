@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>StateMachineStorage</name>
+    </assembly>
+    <members>
+        <member name="M:StateMachineStorage.Controllers.StateMachineController.ValidateStateMachine(StateMachineStorage.Models.StateMachineModel)">
+            <summary>
+            Check if state machine is valid against a schema
+            </summary>
+            <param name="stateMachine">State machine</param>
+            <returns></returns>
+        </member>
+        <member name="M:StateMachineStorage.Controllers.StateMachineController.AddStateMachine(StateMachineStorage.Models.StateMachineModel)">
+            <summary>
+            Add new state machine into a db
+            </summary>
+            <param name="stateMachine">State machine</param>
+            <returns></returns>
+        </member>
+        <member name="M:StateMachineStorage.Controllers.StateMachineController.AddStateMachineImplementation(StateMachineStorage.Models.StateImplementationModel)">
+            <summary>
+            Add new state machine implementation into a db
+            </summary>
+            <param name="stateMachineImplementation">State machine implementation</param>
+            <returns></returns>
+        </member>
+        <member name="M:StateMachineStorage.Controllers.StateMachineController.UpdateStateMachineImplementation(StateMachineStorage.Models.StateImplementationModel)">
+            <summary>
+            Update state machine implementation
+            </summary>
+            <param name="stateMachineImplementation">State machine implementation</param>
+            <returns></returns>
+        </member>
+        <member name="M:StateMachineStorage.Controllers.StateMachineController.GetStateMachines(System.String)">
+            <summary>
+            Get state machine definitios from a DB
+            </summary>
+            <param name="agenda">Agenda to sort by</param>
+            <returns></returns>
+        </member>
+        <member name="M:StateMachineStorage.Controllers.StateMachineController.GetStateMachineById(System.Int64)">
+            <summary>
+            Get state machine definition by ID
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:StateMachineStorage.Controllers.StateMachineController.UpdateStateMachine(StateMachineStorage.Models.StateMachineModel)">
+            <summary>
+            Update state machine definition
+            </summary>
+            <param name="updatedStateMachine">Updated state machine definition</param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>

@@ -8,14 +8,14 @@ namespace StateMachineStorage.Data
     {
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
+        public long ElementId { get; set; }
+        public long ElementTypeId { get; set; }
         public long SMDefinitionId { get; set; }
         public string Name { get; set; }
-        public long StateId { get; set; }
-        public long TransitionId { get; set; }
         public string Implemetation { get; set; }
 
+        public virtual Element Element { get; set; }
+        public virtual ElementType ElementType { get; set; }
         public virtual SMDefinition SMDefinition { get; set; }
-        public virtual State State { get; set; }
-        public virtual Transition Transition { get; set; }
     }
 }

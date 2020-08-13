@@ -39,6 +39,8 @@ namespace StateMachineStorage.Data.Repository
 
             var stateTokens = allObjects.Where(x => x.ContainsKey("kind"));
             var transitionTokens = allObjects.Where(x => x.ContainsKey("target"));
+            var stateTypeId = _context.ElementType.FirstOrDefault(x => x.Name.Equals("state")).Id;
+            var transitionTypeId = _context.ElementType.FirstOrDefault(x => x.Name.Equals("transition")).Id;
 
             foreach (var transition in transitionTokens)
             {
@@ -59,15 +61,16 @@ namespace StateMachineStorage.Data.Repository
             {
                 if (!addedStates.Contains((string)state["id"]))
                 {
-                    var newState = new State
+                    var newState = new Element
                     {
                         SMDefinitionId = stateMachineDefinition.Id,
+                        ElementTypeId = stateTypeId,
                         Name = (string)state["id"]
                     };
 
                     addedStates.Add(newState.Name);
 
-                    _context.State.Add(newState);
+                    _context.Element.Add(newState);
                 }     
             }
 
@@ -77,23 +80,24 @@ namespace StateMachineStorage.Data.Repository
             {
                 var childTransitionTokens = state["states"] == null
                     ? state.DescendantsAndSelf().OfType<JObject>().Where(x => x.ContainsKey("target"))
-                    : state["states"].Children().OfType<JObject>().Where(x => x.ContainsKey("target"));
+                    : state.SelectToken("transitions").Children().OfType<JObject>().Where(x => x.ContainsKey("target"));
 
                 foreach (var childTransition in childTransitionTokens)
-                {
-                    var newTransition = new Transition
+                {                    
+                    var newTransition = new Element
                     {
+                        ElementTypeId = transitionTypeId,
                         SMDefinitionId = stateMachineDefinition.Id,
-                        OldStateId = _context.State.FirstOrDefault(x => x.Name.Equals((string)state["id"])).Id,
-                        NewStateId = _context.State.FirstOrDefault(x => x.Name.Equals((string)childTransition["target"])).Id,
+                        OldStateId = _context.Element.FirstOrDefault(x => x.ElementTypeId == stateTypeId && x.Name.Equals((string)state["id"])).Id,
+                        NewStateId = _context.Element.FirstOrDefault(x => x.ElementTypeId == stateTypeId && x.Name.Equals((string)childTransition["target"])).Id,
                         TransitionTriggerId = _context.TransitionTrigger.FirstOrDefault(x => x.Name.Equals((string)childTransition["event"])).Id
                     };
 
-                    _context.Transition.Add(newTransition);
+                    _context.Element.Add(newTransition);
                 }                
             }
 
-            stateMachineDefinition.InitialStateId = _context.State.FirstOrDefault(x => x.Name.Equals(initialStateName)).Id;
+            stateMachineDefinition.InitialStateId = _context.Element.FirstOrDefault(x => x.ElementTypeId == stateTypeId && x.Name.Equals(initialStateName)).Id;
 
             _context.SaveChanges();
         }
@@ -103,6 +107,8 @@ namespace StateMachineStorage.Data.Repository
             var stateMachineImplementation = new SMImplementation
             {
                 SMDefinitionId = model.StateDefinitionId,
+                ElementId = model.ElementId,
+                ElementTypeId = model.ElementTypeId,
                 Name = model.Name,
                 Implemetation = model.Implementation.ToString(Formatting.None)
             };

@@ -15,79 +15,54 @@ END
 
 IF EXISTS (SELECT *
 FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_SMImplementation_State]')
+WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_SMImplementation_ElementType]')
 AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[SMImplementation]')
 )
 BEGIN
-ALTER TABLE [STATE_MACHINE].[SMImplementation] DROP CONSTRAINT [FK_SMImplementation_State]
+ALTER TABLE [STATE_MACHINE].[SMImplementation] DROP CONSTRAINT FK_SMImplementation_ElementType
 END
 
 IF EXISTS (SELECT *
 FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_SMImplementation_Transition]')
+WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_SMImplementation_Element]')
 AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[SMImplementation]')
 )
 BEGIN
-ALTER TABLE [STATE_MACHINE].[SMImplementation] DROP CONSTRAINT [FK_SMImplementation_Transition]
+ALTER TABLE [STATE_MACHINE].[SMImplementation] DROP CONSTRAINT FK_SMImplementation_Element
 END
 
 IF EXISTS (SELECT *
 FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_Transition_StateOld]')
-AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[Transition]')
+WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_Element_ElementType]')
+AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[Element]')
 )
 BEGIN
-ALTER TABLE [STATE_MACHINE].[Transition] DROP CONSTRAINT [FK_Transition_StateOld]
+ALTER TABLE [STATE_MACHINE].[Element] DROP CONSTRAINT FK_Element_ElementType
 END
 
 IF EXISTS (SELECT *
 FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_Transition_StateNew]')
-AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[Transition]')
+WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_Element_SMDefinition]')
+AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[Element]')
 )
 BEGIN
-ALTER TABLE [STATE_MACHINE].[Transition] DROP CONSTRAINT [FK_Transition_StateNew]
+ALTER TABLE [STATE_MACHINE].[Element] DROP CONSTRAINT FK_Element_SMDefinition
 END
 
-IF EXISTS (SELECT *
-FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_Transition_TransitionTrigger]')
-AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[Transition]')
-)
-BEGIN
-ALTER TABLE [STATE_MACHINE].[Transition] DROP CONSTRAINT [FK_Transition_TransitionTrigger]
-END
-
-IF EXISTS (SELECT *
-FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_SMDefinition_State]')
-AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[SMDefinition]')
-)
-BEGIN
-ALTER TABLE [STATE_MACHINE].[SMDefinition] DROP CONSTRAINT [FK_SMDefinition_State]
-END
-
-IF EXISTS (SELECT *
-FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_State_SMDefinition]')
-AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[State]')
-)
-BEGIN
-ALTER TABLE [STATE_MACHINE].[State] DROP CONSTRAINT [FK_State_SMDefinition]
-END
-
-IF EXISTS (SELECT *
-FROM sys.foreign_keys
-WHERE object_id = OBJECT_ID(N'[STATE_MACHINE].[FK_Transition_SMDefinition]')
-AND parent_object_id = OBJECT_ID(N'[STATE_MACHINE].[Transition]')
-)
-BEGIN
-ALTER TABLE [STATE_MACHINE].[Transition] DROP CONSTRAINT [FK_Transition_SMDefinition]
-END
 
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE Table_Schema='STATE_MACHINE' and Table_Name='EventLog')
 BEGIN
 DROP TABLE STATE_MACHINE.EventLog
+END
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE Table_Schema='STATE_MACHINE' and Table_Name='ElementType')
+BEGIN
+DROP TABLE STATE_MACHINE.ElementType
+END
+
+IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE Table_Schema='STATE_MACHINE' and Table_Name='Element')
+BEGIN
+DROP TABLE STATE_MACHINE.Element
 END
 
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE Table_Schema='STATE_MACHINE' and Table_Name='SMImplementation')
@@ -100,21 +75,10 @@ BEGIN
 DROP TABLE STATE_MACHINE.SMDefinition
 END
 
-IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE Table_Schema='STATE_MACHINE' and Table_Name='Transition')
-BEGIN
-DROP TABLE STATE_MACHINE.Transition
-END
-
-IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE Table_Schema='STATE_MACHINE' and Table_Name='State')
-BEGIN
-DROP TABLE STATE_MACHINE.State
-END
-
 IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE Table_Schema='STATE_MACHINE' and Table_Name='TransitionTrigger')
 BEGIN
 DROP TABLE STATE_MACHINE.TransitionTrigger
 END
-
 
 CREATE TABLE STATE_MACHINE.EventLog
 (
@@ -125,23 +89,24 @@ CREATE TABLE STATE_MACHINE.EventLog
 [Date] DateTime NOT NULL
 )
 
+CREATE TABLE STATE_MACHINE.ElementType(
+[ID] bigint  PRIMARY KEY  Identity(1,1),
+[Name] nvarchar(250)
+)
+
 CREATE TABLE STATE_MACHINE.TransitionTrigger(
 [ID] bigint  PRIMARY KEY  Identity(1,1),
 [Name] nvarchar(250)
 )
 
-CREATE TABLE STATE_MACHINE.State(
+CREATE TABLE STATE_MACHINE.Element(
 [ID] bigint  PRIMARY KEY  Identity(1,1),
-[SMDefinitionId] bigint NULL,
-[Name] nvarchar(250),
-)
-
-CREATE TABLE STATE_MACHINE.Transition(
-[ID] bigint  PRIMARY KEY  Identity(1,1),
+[ElementTypeId] bigint NOT NULL,
 [SMDefinitionId] bigint NOT NULL,
-[OldStateId] bigint NOT NULL,
-[NewStateId] bigint NOT NULL,
-[TransitionTriggerId] bigint NOT NULL
+[OldStateId] bigint NULL,
+[NewStateId] bigint NULL,
+[TransitionTriggerId] bigint NULL,
+[Name] nvarchar(250),
 )
 
 CREATE TABLE STATE_MACHINE.SMDefinition(
@@ -155,10 +120,10 @@ CREATE TABLE STATE_MACHINE.SMDefinition(
 
 CREATE TABLE STATE_MACHINE.SMImplementation(
 [ID] bigint  PRIMARY KEY  Identity(1,1),
+[ElementId] bigint NOT NULL,
+[ElementTypeId] bigint NOT NULL,
 [SMDefinitionId] bigint NOT NULL,
 [Name] nvarchar(250),
-[StateId] bigint NOT NULL,
-[TransitionId] bigint NOT NULL,
 [Implemetation] nvarchar(MAX)
 )
 
@@ -166,22 +131,16 @@ ALTER TABLE STATE_MACHINE.SMImplementation
 ADD CONSTRAINT FK_SMImplementation_SMDefinition FOREIGN KEY (SMDefinitionId) REFERENCES STATE_MACHINE.SMDefinition (ID) ON DELETE CASCADE
 
 ALTER TABLE STATE_MACHINE.SMImplementation
-ADD CONSTRAINT FK_SMImplementation_State FOREIGN KEY (StateId) REFERENCES STATE_MACHINE.State (ID) ON DELETE NO ACTION
+ADD CONSTRAINT FK_SMImplementation_Element FOREIGN KEY (ElementId) REFERENCES STATE_MACHINE.Element (ID) ON DELETE NO ACTION
 
 ALTER TABLE STATE_MACHINE.SMImplementation
-ADD CONSTRAINT FK_SMImplementation_Transition FOREIGN KEY (TransitionId) REFERENCES STATE_MACHINE.Transition (ID) ON DELETE CASCADE
+ADD CONSTRAINT FK_SMImplementation_ElementType FOREIGN KEY (ElementTypeId) REFERENCES STATE_MACHINE.ElementType (ID) ON DELETE NO ACTION
 
-ALTER TABLE STATE_MACHINE.State
-ADD CONSTRAINT FK_State_SMDefinition FOREIGN KEY (SMDefinitionId) REFERENCES STATE_MACHINE.SMDefinition (ID)  ON DELETE NO ACTION
+ALTER TABLE STATE_MACHINE.Element
+ADD CONSTRAINT FK_Element_ElementType FOREIGN KEY (ElementTypeId) REFERENCES STATE_MACHINE.ElementType (ID)  ON DELETE NO ACTION
 
-ALTER TABLE STATE_MACHINE.Transition
-ADD CONSTRAINT FK_Transition_SMDefinition FOREIGN KEY (SMDefinitionId) REFERENCES STATE_MACHINE.SMDefinition (ID)  ON DELETE NO ACTION
+ALTER TABLE STATE_MACHINE.Element
+ADD CONSTRAINT FK_Element_SMDefinition FOREIGN KEY (SMDefinitionId) REFERENCES STATE_MACHINE.SMDefinition (ID)  ON DELETE NO ACTION
 
-ALTER TABLE STATE_MACHINE.Transition
-ADD CONSTRAINT FK_Transition_StateOld FOREIGN KEY (OldStateId) REFERENCES STATE_MACHINE.State (ID)  ON DELETE NO ACTION
-
-ALTER TABLE STATE_MACHINE.Transition
-ADD CONSTRAINT FK_Transition_StateNew FOREIGN KEY (NewStateId) REFERENCES STATE_MACHINE.State (ID)  ON DELETE NO ACTION
-ALTER TABLE STATE_MACHINE.Transition
-ADD CONSTRAINT FK_Transition_TransitionTrigger FOREIGN KEY (TransitionTriggerId) REFERENCES STATE_MACHINE.TransitionTrigger (ID)  ON DELETE CASCADE
-
+INSERT INTO STATE_MACHINE.ElementType VALUES ('state')
+INSERT INTO STATE_MACHINE.ElementType VALUES ('transition')
